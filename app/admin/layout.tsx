@@ -3,6 +3,7 @@ import Sidebar from "@/components/sidebar";
 
 const adminNavItems = [
   { label: "Dashboard", href: "/admin" },
+  { label: "Website", href: "/admin/website" },
   { label: "Students", href: "/admin/students" },
   { label: "Teachers", href: "/admin/teachers" },
   { label: "News", href: "/admin/news" },

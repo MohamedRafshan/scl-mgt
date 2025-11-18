@@ -1,33 +1,76 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+
+interface NewsItem {
+  id: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  published_date: string;
+  image_url: string | null;
+}
+
 export default function SchoolNews() {
-  const newsItems = [
-    {
-      id: 1,
-      title: "Annual Sports Day 2024",
-      date: "March 15, 2024",
-      category: "Events",
-      excerpt:
-        "Join us for our annual sports day celebration with various athletic competitions and fun activities for all students.",
-      image: "🏃",
-    },
-    {
-      id: 2,
-      title: "Science Fair Winners Announced",
-      date: "March 10, 2024",
-      category: "Academics",
-      excerpt:
-        "Congratulations to our talented students who showcased innovative projects at this year's science fair.",
-      image: "🔬",
-    },
-    {
-      id: 3,
-      title: "New Computer Lab Inauguration",
-      date: "March 5, 2024",
-      category: "Infrastructure",
-      excerpt:
-        "State-of-the-art computer lab with latest technology opens for students, enhancing digital learning experience.",
-      image: "💻",
-    },
-  ];
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchNews();
+  }, []);
+
+  const fetchNews = async () => {
+    const { data, error } = await supabase
+      .from("website_news")
+      .select("id, title, excerpt, category, published_date, image_url")
+      .eq("published", true)
+      .order("published_date", { ascending: false })
+      .limit(3);
+
+    if (!error && data) {
+      setNews(data);
+    }
+    setLoading(false);
+  };
+
+  const getCategoryEmoji = (category: string) => {
+    const emojis: Record<string, string> = {
+      events: "🏃",
+      academics: "🔬",
+      sports: "⚽",
+      infrastructure: "💻",
+      general: "📢",
+    };
+    return emojis[category] || "📰";
+  };
+
+  if (loading) {
+    return (
+      <section id="news" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">Loading news...</div>
+        </div>
+      </section>
+    );
+  }
+
+  if (news.length === 0) {
+    return (
+      <section id="news" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Latest News & Updates
+            </h2>
+            <p className="text-xl text-gray-600">
+              No news available at the moment
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="news" className="py-16 bg-gray-50">
@@ -42,25 +85,27 @@ export default function SchoolNews() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {newsItems.map((news) => (
+          {news.map((item) => (
             <div
-              key={news.id}
+              key={item.id}
               className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden"
             >
               <div className="h-48 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-6xl">
-                {news.image}
+                {getCategoryEmoji(item.category)}
               </div>
               <div className="p-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold text-blue-600 uppercase">
-                    {news.category}
+                    {item.category}
                   </span>
-                  <span className="text-xs text-gray-500">{news.date}</span>
+                  <span className="text-xs text-gray-500">
+                    {new Date(item.published_date).toLocaleDateString()}
+                  </span>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {news.title}
+                  {item.title}
                 </h3>
-                <p className="text-gray-600 mb-4">{news.excerpt}</p>
+                <p className="text-gray-600 mb-4">{item.excerpt}</p>
                 <button className="text-blue-600 font-semibold hover:text-blue-800 transition">
                   Read More →
                 </button>

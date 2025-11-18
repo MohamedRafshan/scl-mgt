@@ -55,7 +55,7 @@ export default function AdminDashboard() {
       }
     }
 
-    checkUser();
+    // checkUser();
   }, [router]);
   if (loading) {
     return (

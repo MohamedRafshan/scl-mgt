@@ -32,6 +32,8 @@ export default function LoginPage() {
         targetPath = "/admin";
       } else if (role === "teacher") {
         targetPath = "/teacher";
+      } else {
+        targetPath = "/student";
       }
 
       console.log("Navigating to:", targetPath);
