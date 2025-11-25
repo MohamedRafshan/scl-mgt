@@ -14,6 +14,9 @@ type NewsInsert = {
 };
 
 export async function createNews(data: NewsInsert) {
+  console.log("=== Creating News ===");
+  console.log("Data received:", data);
+  
   try {
     const supabase = await createClient();
 
@@ -24,8 +27,6 @@ export async function createNews(data: NewsInsert) {
     console.log("User authenticated:", !!user);
     console.log("User ID:", user?.id);
     console.log("User email:", user?.email);
-    console.log("User role:", user?.user_metadata?.role);
-    console.log("Session exists:", !!user);
     console.log("===========================");
     
     if (authError || !user) {
@@ -33,48 +34,85 @@ export async function createNews(data: NewsInsert) {
       return { error: "User not authenticated. Please log in again." };
     }
 
-    console.log(user);
+    const insertData = {
+      ...data,
+      created_by: user.id,
+    };
     
+    console.log("Inserting data:", insertData);
 
     const { data: news, error } = await supabase
       .from("news")
-      .insert({
-        ...data,
-        created_by: user.id,
-      })
+      .insert(insertData)
       .select()
       .single();
 
-    if (error) throw error;
+    console.log("Insert result:", { news, error });
 
+    if (error) {
+      console.error("Insert error:", error);
+      throw error;
+    }
+
+    console.log("=== News Created Successfully ===");
     revalidatePath("/admin/website/news");
     return { success: true, data: news };
-  } catch (error: unknown) {
-    return { error: error instanceof Error ? error.message : String(error) };
+  } catch (error: any) {
+    console.error("=== Create News Failed ===");
+    console.error("Error:", error);
+    return { error: error?.message || String(error) };
   }
 }
 
 export async function updateNews(id: string, data: NewsInsert) {
-  try {
-    const supabase = await createClient();
+    try {
+        console.log("=== Update News Started ===");
+        console.log("News ID:", id);
+        console.log("Update data:", data);
+        
+        const supabase = await createClient();
 
-    const { data: news, error } = await supabase
-      .from("news")
-      .update({
-        ...data,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select()
-      .single();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        console.log("=== Authentication Check ===");
+        console.log("Auth error:", authError);
+        console.log("User authenticated:", !!user);
+        console.log("User ID:", user?.id);
+        console.log("User email:", user?.email);
+        console.log("User role:", user?.user_metadata?.role);
+        console.log("===========================");
+        
+        if (authError || !user) {
+            console.error("Authentication failed:", authError);
+            return { error: "User not authenticated. Please log in again." };
+        }
 
-    if (error) throw error;
+        const updatePayload = {
+            ...data,
+            updated_at: new Date().toISOString(),
+        };
+        
+        console.log("Update payload:", updatePayload);
 
-    revalidatePath("/admin/website/news");
-    return { success: true, data: news };
-  } catch (error: unknown) {
-    return { error: error instanceof Error ? error.message : String(error) };
-  }
+        const { data: news, error } = await supabase
+            .from("news")
+            .update(updatePayload)
+            .eq("id", id)
+            .select()
+            .single();
+
+        console.log("Update result:", { news, error });
+
+        if (error) throw error;
+
+        console.log("=== Update Successful ===");
+        revalidatePath("/admin/website/news");
+        return { success: true, data: news };
+    } catch (error: any) {
+        console.error("=== Update Failed ===");
+        console.error("Error:", error);
+        return { error: error instanceof Error ? error.message : String(error) };
+    }
 }
 
 export async function deleteNews(id: string) {
@@ -122,6 +160,7 @@ export async function uploadNewsImage(formData: FormData) {
     
     // Check if user is authenticated
     const { data: { user, session }, error: authError } = await supabase.auth.getUser();
+
     
     console.log("=== Authentication Check ===");
     console.log("Auth error:", authError);

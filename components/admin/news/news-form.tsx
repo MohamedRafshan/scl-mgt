@@ -16,6 +16,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { createNews, updateNews, uploadNewsImage } from "@/lib/actions/news";
 import Image from "next/image";
+import { supabase } from "@/lib/supabaseClient";
 
 interface NewsFormProps {
   news?: any;
@@ -122,26 +123,40 @@ export default function NewsForm({ news }: NewsFormProps) {
 
       console.log("Submitting news data:", newsData);
 
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      console.log(user);
+
+      if (!user) throw new Error("No authenticated user");
+
       let result;
       if (news?.id) {
+        console.log("=== Calling updateNews ===");
         result = await updateNews(news.id, newsData);
+        console.log("Update result:", result);
       } else {
+        console.log("=== Calling createNews ===");
         result = await createNews(newsData);
+        console.log("Create result:", result);
       }
 
-      if (result.error) {
-        throw new Error(result.error);
+      if (!result) {
+        throw new Error("No response from server");
       }
 
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+
+      console.log("Success! Redirecting...");
       router.push("/admin/website/news");
       router.refresh();
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error("Form submission error:", err);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError(String(err) || "Failed to save news");
-      }
+      setError(err?.message || err?.error || "Failed to save news");
     } finally {
       setLoading(false);
     }
