@@ -6,10 +6,9 @@ import { supabase } from "@/lib/supabaseClient";
 interface NewsItem {
   id: string;
   title: string;
-  excerpt: string;
+  content: string;
   category: string;
   published_date: string;
-  image_url: string | null;
 }
 
 export default function SchoolNews() {
@@ -17,29 +16,40 @@ export default function SchoolNews() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchNews();
+    let mounted = true;
+
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("news")
+          .select("id, title, content, category, published_date")
+          .eq("published", true)
+          .order("published_date", { ascending: false })
+          .limit(3);
+
+        if (!mounted) return;
+
+        if (!error && data) {
+          setNews(data);
+        }
+      } catch (err) {
+        // handle/log error if needed
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
-
-  const fetchNews = async () => {
-    const { data, error } = await supabase
-      .from("website_news")
-      .select("id, title, excerpt, category, published_date, image_url")
-      .eq("published", true)
-      .order("published_date", { ascending: false })
-      .limit(3);
-
-    if (!error && data) {
-      setNews(data);
-    }
-    setLoading(false);
-  };
 
   const getCategoryEmoji = (category: string) => {
     const emojis: Record<string, string> = {
-      events: "🏃",
-      academics: "🔬",
-      sports: "⚽",
-      infrastructure: "💻",
+      event: "🏃",
+      academic: "🔬",
+      holiday: "🎉",
+      urgent: "🚨",
       general: "📢",
     };
     return emojis[category] || "📰";
@@ -105,7 +115,9 @@ export default function SchoolNews() {
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
                   {item.title}
                 </h3>
-                <p className="text-gray-600 mb-4">{item.excerpt}</p>
+                <p className="text-gray-600 mb-4">
+                  {item.content.substring(0, 120)}...
+                </p>
                 <button className="text-blue-600 font-semibold hover:text-blue-800 transition">
                   Read More →
                 </button>

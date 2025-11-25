@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
 interface User {
   id?: string;
   email?: string;
   full_name?: string;
   role?: string;
-  // add other known fields here as optional properties
   [key: string]: unknown;
 }
 
@@ -20,33 +20,46 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function checkUser() {
       try {
-        type AuthModule = {
-          getCurrentUser?: () => Promise<User | null>;
-          default?: () => Promise<User | null>;
-        };
+        // Get session from Supabase
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
 
-        const authModule = (await import(
-          "@/lib/auth"
-        )) as unknown as AuthModule;
-        const currentUser = await (authModule.getCurrentUser
-          ? authModule.getCurrentUser()
-          : authModule.default
-          ? authModule.default()
-          : Promise.resolve(null));
+        console.log("=== Admin Dashboard Auth Check ===");
+        console.log("Session:", !!session);
+        console.log("User:", session?.user?.email);
+        console.log("Error:", error);
+        console.log("==================================");
 
-        console.log("Current user in admin:", currentUser);
-
-        if (!currentUser) {
-          router.push("/teacher");
+        if (!session || !session.user) {
+          console.log("No session - redirecting to login");
+          router.push("/login");
           return;
         }
 
-        if (currentUser.role !== "admin") {
-          router.push(`/${currentUser.role}`);
+        // Get user profile
+        const { data: profile } = await supabase
+          .from("users")
+          .select("*")
+          .eq("email", session.user.email)
+          .single();
+
+        console.log("Profile:", profile);
+
+        if (!profile) {
+          console.log("No profile found");
+          router.push("/login");
           return;
         }
 
-        setUser(currentUser);
+        if (profile.role !== "admin") {
+          console.log("Not admin - redirecting to", profile.role);
+          router.push(`/${profile.role}`);
+          return;
+        }
+
+        setUser(profile);
       } catch (error) {
         console.error("Error checking user:", error);
         router.push("/login");
@@ -55,8 +68,9 @@ export default function AdminDashboard() {
       }
     }
 
-    // checkUser();
+    checkUser();
   }, [router]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">

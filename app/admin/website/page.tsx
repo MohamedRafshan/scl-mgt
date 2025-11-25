@@ -40,7 +40,7 @@ export default function WebsiteManagementPage() {
         </Link>
 
         {/* School Settings */}
-        <Link href="/admin/website/settings" className="block">
+        {/* <Link href="/admin/website/settings" className="block">
           <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
             <div className="text-4xl mb-4">⚙️</div>
             <h3 className="text-xl font-bold mb-2">School Settings</h3>
@@ -48,7 +48,7 @@ export default function WebsiteManagementPage() {
               Update school info and contact details
             </p>
           </div>
-        </Link>
+        </Link> */}
       </div>
     </div>
   );
