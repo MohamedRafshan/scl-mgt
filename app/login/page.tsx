@@ -1,10 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "@/lib/auth";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -48,14 +48,12 @@ export default function LoginPage() {
     console.log("=== Login Form Submit ===");
     console.log("Email:", email);
     console.log("Redirect param:", redirectTo);
-    console.log("========================");
 
     try {
       const result = await signIn(email, password);
 
       console.log("=== Login Success ===");
       console.log("User:", result.user?.email);
-      console.log("Session:", !!result.session);
       console.log("Role:", result.userData?.role);
 
       // Wait for cookies to be set
@@ -66,7 +64,6 @@ export default function LoginPage() {
         data: { session },
       } = await supabase.auth.getSession();
       console.log("Session in browser:", !!session);
-      console.log("====================");
 
       if (!session) {
         throw new Error("Session not persisted. Please try again.");
@@ -77,10 +74,8 @@ export default function LoginPage() {
       let target = "/";
 
       if (redirectTo && role === "admin" && redirectTo.startsWith("/admin")) {
-        // Honor redirect if user is admin and trying to access admin path
         target = redirectTo;
       } else {
-        // Otherwise redirect based on role
         target =
           role === "admin"
             ? "/admin"
@@ -90,8 +85,6 @@ export default function LoginPage() {
       }
 
       console.log("Final redirect target:", target);
-
-      // Hard redirect
       window.location.href = target;
     } catch (err: any) {
       console.error("=== Login Error ===", err);
@@ -144,5 +137,19 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+          <div className="text-gray-600">Loading...</div>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
