@@ -159,13 +159,12 @@ export async function uploadNewsImage(formData: FormData) {
     const supabase = await createClient();
     
     // Check if user is authenticated
-    const { data: { user, session }, error: authError } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     
     console.log("=== Authentication Check ===");
     console.log("Auth error:", authError);
     console.log("User authenticated:", !!user);
-    console.log("Session exists:", !!session);
     console.log("User ID:", user?.id);
     console.log("User email:", user?.email);
     console.log("User role:", user?.user_metadata?.role);
