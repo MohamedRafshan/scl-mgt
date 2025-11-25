@@ -94,12 +94,14 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-96">
-        <h1 className="text-2xl font-bold mb-6">Login</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <div className="bg-white p-6 md:p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">Login</h1>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded mb-4">{error}</div>
+          <div className="bg-red-50 text-red-600 p-3 rounded mb-4 text-sm">
+            {error}
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -109,7 +111,7 @@ function LoginForm() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              className="w-full border rounded px-3 py-2 text-sm md:text-base"
               required
               disabled={loading}
             />
@@ -121,7 +123,7 @@ function LoginForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              className="w-full border rounded px-3 py-2 text-sm md:text-base"
               required
               disabled={loading}
             />
@@ -129,7 +131,7 @@ function LoginForm() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
+            className="w-full bg-blue-600 text-white py-2 md:py-2.5 rounded hover:bg-blue-700 disabled:bg-gray-400 text-sm md:text-base font-medium"
             disabled={loading}
           >
             {loading ? "Logging in..." : "Login"}
@@ -144,8 +146,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-          <div className="text-gray-600">Loading...</div>
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+          <div className="text-gray-600 text-sm md:text-base">Loading...</div>
         </div>
       }
     >
